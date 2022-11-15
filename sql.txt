@@ -1,0 +1,89 @@
+create procedure n1(in rno1 int)
+begin
+declare rno2 int;
+declare exit_cond boolean;
+declare c1 cursor for select rollno from o_rollcall where rollno>rno1;
+declare continue handler for not found set exit_cond=TRUE;
+open c1;
+l1:loop
+fetch c1 into rno2;
+if not exists(select * from n_rollcall where rollno=rno2)then
+insert into n_rollcall select * from o_rollcall where rollno=rno2;
+end if;
+if exit_cond then
+close c1;
+leave l1;
+end if;
+end loop l1;
+end
+//
+
+mysql> delimiter //
+mysql> create procedure A(IN rollno1 int(10), name1 varchar(20))
+-> begin
+-> declare i_date date;
+-> declare diff int;
+-> declare fine_amt int;
+-> declare EXIT HANDLER FOR SQLEXCEPTION SELECT 'Table not found';
+-> select Date_of_issue into i_date from borrower where Roll_no= rollno1 and Name_of_book = 
+name1;
+-> select DATEDIFF(CURDATE(), i_date) into diff;
+-> if(diff>=15 and diff<=30) then
+-> set fine_amt= diff*5;
+-> insert into fine values(rollno1, CURDATE(), fine_amt);
+-> elseif(diff>30) then
+-> set fine_amt= diff*50;
+-> insert into fine values(rollno1, CURDATE(), fine_amt);
+-> end if;
+-> update borrower set Status= 'R' where Roll_no= rollno1 and Name_of_book = name1;
+-> end
+-> //
+
+create procedure proc_grade1()
+begin
+declare i int;
+declare n int;
+declare rollno1 int;
+declare name1 varchar(20);
+declare class1 varchar(40);
+declare total1 int;
+declare s1 int;
+declare s2 int;
+declare s3 int;
+declare s4 int;
+declare s5 int;
+select count(*)into n from marks;
+set i=0;
+disp:loop
+set i=i+1;
+select rollno into rollno1 from marks where rollno=i;
+select name into name1 from marks where rollno=i;
+select sub1 into s1 from marks where rollno=i;
+select sub2 into s2 from marks where rollno=i;
+select sub3 into s3 from marks where rollno=i;
+select sub4 into s4 from marks where rollno=i;
+select sub5 into s5 from marks where rollno=i;
+set total1=s1+s2+s3+s4+s5;
+if total1<=1500 and total1>990 then
+set class1='distinction';
+else
+if total1<=989 and total1>900 then
+Database Management Systems Laboratory Class:TE(ComputerEngineering)
+Departmentof ComputerEngineering,ZCOER,Narhe,Pune-41 Page52
+set class1='first class';
+else
+if total1<899 and total1>825 then
+set class1='higher class';
+else
+set class1='pass class';
+end if;
+end if;
+end if;
+insert into stud_marks values(rollno1,name1,total1);
+insert into results values(rollno1,name1,class1);
+if i=n then
+leave disp;
+end if;
+end loop;
+end
+//
